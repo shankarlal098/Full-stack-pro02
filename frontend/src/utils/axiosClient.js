@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const axiosClient =  axios.create({
-    baseURL: 'http://localhost:4000',
+    baseURL: 'https://leetcode-backend-app.onrender.com',
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json'
@@ -11,3 +11,4 @@ const axiosClient =  axios.create({
 
 export default axiosClient;
 
+// import.meta.env.VITE_API_URL || "http://localhost:8000"
