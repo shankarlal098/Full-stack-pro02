@@ -12,11 +12,16 @@ const videoRouter = require("./routes/videoCreator");
 const cors = require('cors')
 
 // console.log("Hello")
+const cors = require('cors');
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173", // Production mein Vercel URL yahan aayega
-  credentials: true
+    origin: "https://full-stack-pro02.vercel.app",
+    credentials: true,                             
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+
 app.use(express.json());
 app.use(cookieParser());
 

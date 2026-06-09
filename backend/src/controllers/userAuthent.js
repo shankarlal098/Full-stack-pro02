@@ -8,73 +8,78 @@ const crypto = require("crypto");
 const transporter = require('../utils/nodemailer')
 const client = require("../utils/googleClient");
 
-const register = async (req,res)=>{
-    
-    try{
-        // validate the data;
 
-      validate(req.body); 
-      const {firstName, emailId, password}  = req.body;
+const register = async (req, res) => {
+    try {
+        validate(req.body); 
+        const { firstName, emailId, password } = req.body;
 
-      req.body.password = await bcrypt.hash(password, 10);
-      req.body.role = 'user'
-    //
-    
-     const user =  await User.create(req.body);
-     const token =  jwt.sign({_id:user._id , emailId:emailId, role:'user'},process.env.JWT_KEY,{expiresIn: 60*60});
-     const reply = {
-        firstName: user.firstName,
-        emailId: user.emailId,
-        _id: user._id,
-        role:user.role,
-    }
-    
-     res.cookie('token',token,{maxAge: 60*60*60*1000});
-     res.status(201).json({
-        user:reply,
-        message:"Loggin Successfully"
-    })
-    }
-    catch(err){
-        res.status(400).send("Error: "+err);
-    }
-}
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        const user = await User.create({
+            firstName,
+            emailId,
+            password: hashedPassword,
+            role: 'user'
+        });
 
-const login = async (req,res)=>{
+        const token = jwt.sign(
+            { _id: user._id, emailId: emailId, role: 'user' }, 
+            process.env.JWT_KEY, 
+            { expiresIn: '1h' }
+        );
 
-    try{
-        const {emailId, password} = req.body;
+        // Cookies with cross-site support
+        res.cookie('token', token, {
+            maxAge: 60 * 60 * 1000,
+            httpOnly: true,
+            secure: true,        // Production mein HTTPS ke liye
+            sameSite: 'none'     // Cross-origin (Vercel to Render) ke liye zaroori
+        });
 
-        if(!emailId)
-            throw new Error("Invalid Credentials");
-        if(!password)
-            throw new Error("Invalid Credentials");
-
-        const user = await User.findOne({emailId});
-
-        const match = await bcrypt.compare(password,user.password);
-
-        if(!match)
-            throw new Error("Invalid Credentials");
-
-        const reply = {
-            firstName: user.firstName,
-            emailId: user.emailId,
-            _id: user._id,
-            role:user.role,
-        }
-
-        const token =  jwt.sign({_id:user._id , emailId:emailId, role:user.role},process.env.JWT_KEY,{expiresIn: 60*60});
-        res.cookie('token',token,{maxAge: 60*60*60*1000});
         res.status(201).json({
-            user:reply,
-            message:"Loggin Successfully"
-        })
+            user: { firstName: user.firstName, emailId: user.emailId, _id: user._id, role: user.role },
+            message: "Registered Successfully"
+        });
+    } catch (err) {
+        res.status(400).send("Error: " + err.message);
     }
-    catch(err){
-        res.status(401).send("Error: "+err);
+};
+
+const login = async (req, res) => {
+    try {
+        const { emailId, password } = req.body;
+
+        if (!emailId || !password) throw new Error("Invalid Credentials");
+
+        const user = await User.findOne({ emailId });
+        if (!user) throw new Error("Invalid Credentials");
+
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) throw new Error("Invalid Credentials");
+
+        const token = jwt.sign(
+            { _id: user._id, emailId: emailId, role: user.role }, 
+            process.env.JWT_KEY, 
+            { expiresIn: '1h' }
+        );
+
+        // Cookies with cross-site support
+        res.cookie('token', token, {
+            maxAge: 60 * 60 * 1000,
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none'
+        });
+
+        res.status(200).json({
+            user: { firstName: user.firstName, emailId: user.emailId, _id: user._id, role: user.role },
+            message: "Logged In Successfully"
+        });
+    } catch (err) {
+        res.status(401).send("Error: " + err.message);
     }
-}
+};
 
 const logout = async(req,res)=>{
 
