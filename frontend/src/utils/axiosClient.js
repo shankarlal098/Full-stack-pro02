@@ -10,5 +10,3 @@ const axiosClient =  axios.create({
 
 
 export default axiosClient;
-
-// import.meta.env.VITE_API_URL || "http://localhost:8000"
