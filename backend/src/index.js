@@ -12,7 +12,6 @@ const videoRouter = require("./routes/videoCreator");
 const cors = require('cors')
 
 // console.log("Hello")
-const cors = require('cors');
 
 app.use(cors({
     origin: "https://full-stack-pro02.vercel.app",
