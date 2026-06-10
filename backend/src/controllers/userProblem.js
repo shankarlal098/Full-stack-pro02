@@ -197,18 +197,52 @@ const getProblemById = async(req,res)=>{
   }
 }
 
-const getAllProblem = async(req,res)=>{
+const getAllProblem = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-  try{
-    const getProblem = await Problem.find({}).select('_id title difficulty tags');
-   if(getProblem.length==0)
-    return res.status(404).send("Problem is Missing");
-   res.status(200).send(getProblem);
+    // 1. DYNAMIC FILTER OBJECT BANAO
+    const queryObject = {};
+
+    // Agar frontend se specific difficulty aayi (and 'all' nahi hai)
+    if (req.query.difficulty && req.query.difficulty !== 'all') {
+      queryObject.difficulty = req.query.difficulty; // e.g., 'easy', 'medium', 'hard'
+    }
+
+    // Agar frontend se specific tag aaya (and 'all' nahi hai)
+    if (req.query.tag && req.query.tag !== 'all') {
+      queryObject.tags = req.query.tag; // e.g., 'array', 'dp'
+    }
+
+    // 2. Count aur Find dono mein queryObject pass karo
+    const totalProblems = await Problem.countDocuments(queryObject);
+
+    const problems = await Problem.find(queryObject)
+      .select('_id title difficulty tags')
+      .skip(skip)
+      .limit(limit);
+
+    if (problems.length === 0) {
+      // Empty array bhejna status 404 ke badle zyada sahi hai filter ke case mein
+      return res.status(200).json({ data: [], meta: { totalProblems: 0, currentPage: page, totalPages: 0 } });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: problems,
+      meta: {
+        totalProblems,
+        currentPage: page,
+        totalPages: Math.ceil(totalProblems / limit),
+        limit
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Error: " + err.message });
   }
-  catch(err){
-    res.status(500).send("Error: "+err);
-  }
-}
+};
 
 
 const solvedAllProblembyUser =  async(req,res)=>{
