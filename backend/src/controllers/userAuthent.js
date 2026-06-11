@@ -49,6 +49,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { emailId, password } = req.body;
+        console.log("done");
 
         if (!emailId || !password) throw new Error("Invalid Credentials");
 

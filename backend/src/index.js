@@ -9,6 +9,7 @@ const problemRouter = require("./routes/problemCreator");
 const submitRouter = require("./routes/submit")
 const aiRouter = require("./routes/aiChatting")
 const videoRouter = require("./routes/videoCreator");
+const codeRouter = require("./routes/codeRouter")
 const cors = require('cors')
 
 // console.log("Hello")
@@ -20,6 +21,8 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+// https://full-stack-pro02.vercel.app
+
 
 app.use(express.json());
 app.use(cookieParser());
@@ -29,6 +32,8 @@ app.use('/problem',problemRouter);
 app.use('/submission',submitRouter);
 app.use('/ai',aiRouter);
 app.use("/video",videoRouter);
+app.use("/code",codeRouter);
+
 
 
 

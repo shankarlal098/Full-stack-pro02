@@ -263,26 +263,24 @@ const solvedAllProblembyUser =  async(req,res)=>{
       res.status(500).send("Server Error");
     }
 }
-
-const submittedProblem = async(req,res)=>{
-
-  try{
-     
-    const userId = req.result._id;
-    const problemId = req.params.pid;
-
-   const ans = await Submission.find({userId,problemId});
+const submittedProblem = async (req, res) => {
+  try {
+    const userId = req.result._id; 
   
-  if(ans.length==0)
-    res.status(200).send("No Submission is persent");
+    const problemId = req.params.problemId || req.params.pid;
 
-  res.status(200).send(ans);
+    const ans = await Submission.find({ userId, problemId });
+  
+    if (!ans || ans.length === 0) {
+      return res.status(200).json([]); 
+    }
+    return res.status(200).json(ans);
 
+  } catch (err) {
+    console.error("Error in submittedProblem controller:", err);
+    return res.status(500).send("Internal Server Error");
   }
-  catch(err){
-     res.status(500).send("Internal Server Error");
-  }
-}
+};
 
 
 
