@@ -51,29 +51,23 @@ const generateUploadSignature = async (req, res) => {
   }
 };
 
-
 const saveVideoMetadata = async (req, res) => {
   try {
     const {
       problemId,
       cloudinaryPublicId,
       secureUrl,
-      duration,
+      duration, // Frontend se directly duration aa rahi hai yahan 
     } = req.body;
 
     const userId = req.result._id;
 
-    // Verify the upload with Cloudinary
-    const cloudinaryResource = await cloudinary.api.resource(
-      cloudinaryPublicId,
-      { resource_type: 'video' }
-    );
-
-    if (!cloudinaryResource) {
-      return res.status(400).json({ error: 'Video not found on Cloudinary' });
+    // 1. Frontend se aaye data ko basic validation do
+    if (!cloudinaryPublicId || !secureUrl || !duration) {
+      return res.status(400).json({ error: 'Missing required video metadata fields' });
     }
 
-    // Check if video already exists for this problem and user
+    // 2. Check if video already exists for this problem and user
     const existingVideo = await SolutionVideo.findOne({
       problemId,
       userId,
@@ -81,32 +75,27 @@ const saveVideoMetadata = async (req, res) => {
     });
 
     if (existingVideo) {
-      return res.status(409).json({ error: 'Video already exists' });
+      return res.status(409).json({ error: 'Video already exists for this problem' });
     }
 
-    // const thumbnailUrl = cloudinary.url(cloudinaryResource.public_id, {
-    // resource_type: 'image',  
-    // transformation: [
-    // { width: 400, height: 225, crop: 'fill' },
-    // { quality: 'auto' },
-    // { start_offset: 'auto' }  
-    // ],
-    // format: 'jpg'
-    // });
+    // 3. FIX THUMBNAIL: API resource call hatakar seedhe publicId se URL string generate karo
+    const thumbnailUrl = cloudinary.url(cloudinaryPublicId, {
+      resource_type: "video",
+      format: "jpg",
+      start_offset: "2" // Video ke 2nd second ka frame uthayega taaki black screen na aaye
+    });
 
-    const thumbnailUrl = cloudinary.image(cloudinaryResource.public_id,{resource_type: "video"})
-
-// https://cloudinary.com/documentation/video_effects_and_enhancements#video_thumbnails
-    // Create video solution record
+    // 4. Create video solution record directly in Database
     const videoSolution = await SolutionVideo.create({
       problemId,
       userId,
       cloudinaryPublicId,
       secureUrl,
-      duration: cloudinaryResource.duration || duration,
+      duration: Math.round(duration), // Safe Integer Conversion
       thumbnailUrl
     });
 
+    console.log("Metadata saved successfully in DB without extra API call! 🔥");
 
     res.status(201).json({
       message: 'Video solution saved successfully',
@@ -120,9 +109,14 @@ const saveVideoMetadata = async (req, res) => {
 
   } catch (error) {
     console.error('Error saving video metadata:', error);
-    res.status(500).json({ error: 'Failed to save video metadata' });
+    res.status(500).json({ error: 'Failed to save video metadata: ' + error.message });
   }
 };
+
+
+
+
+
 
 
 const deleteVideo = async (req, res) => {

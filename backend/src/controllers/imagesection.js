@@ -41,6 +41,7 @@ const generateUploadSignature = async (req, res) => {
     res.status(500).json({ error: 'Failed to generate upload credentials' });   
   }
 };
+
 const saveImageMetadata = async (req, res) => {
   try {
     const { cloudinaryPublicId , secureUrl, type } = req.body; 

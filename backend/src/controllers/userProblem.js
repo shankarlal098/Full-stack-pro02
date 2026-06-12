@@ -13,50 +13,7 @@ const createProblem = async (req,res)=>{
     } = req.body;
 
 
-    try{
-       
-      // for(const {language,completeCode} of referenceSolution){
-         
-
-      //   // source_code:
-      //   // language_id:
-      //   // stdin: 
-      //   // expectedOutput:
-
-      //   const languageId = getLanguageById(language);
-          
-      //   // I am creating Batch submission
-      //   const submissions = visibleTestCases.map((testcase)=>({
-      //       source_code:completeCode,
-      //       language_id: languageId,
-      //       stdin: testcase.input,
-      //       expected_output: testcase.output
-      //   }));
-
-
-      //   const submitResult = await submitBatch(submissions);
-      //   // console.log(submitResult);
-
-      //   const resultToken = submitResult.map((value)=> value.token);
-
-      //   // ["db54881d-bcf5-4c7b-a2e3-d33fe7e25de7","ecc52a9b-ea80-4a00-ad50-4ab6cc3bb2a1","1b35ec3b-5776-48ef-b646-d5522bdeb2cc"]
-        
-      //  const testResult = await submitToken(resultToken);
-
-
-      //  console.log(testResult);
-
-      //  for(const test of testResult){
-      //   if(test.status_id!=3){
-      //    return res.status(400).send("Error Occured");
-      //   }
-      //  }
-
-      // }
-
-
-      // We can store it in our DB
-    console.log("121");
+    try{    console.log("121");
     const userProblem =  await Problem.create({
         ...req.body,
         problemCreator: req.result._id
@@ -68,6 +25,10 @@ const createProblem = async (req,res)=>{
         res.status(400).send("Error: "+err);
     }
 }
+
+
+
+
 const updateProblem = async (req,res)=>{
     
   const {id} = req.params;
@@ -91,10 +52,6 @@ const updateProblem = async (req,res)=>{
     for(const {language,completeCode} of referenceSolution){
          
 
-      // source_code:
-      // language_id:
-      // stdin: 
-      // expectedOutput:
 
       const languageId = getLanguageById(language);
         
@@ -198,7 +155,6 @@ const getAllProblem = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // 1. DYNAMIC FILTER OBJECT BANAO
     const queryObject = {};
 
     // Agar frontend se specific difficulty aayi (and 'all' nahi hai)
@@ -206,7 +162,6 @@ const getAllProblem = async (req, res) => {
       queryObject.difficulty = req.query.difficulty; // e.g., 'easy', 'medium', 'hard'
     }
 
-    // Agar frontend se specific tag aaya (and 'all' nahi hai)
     if (req.query.tag && req.query.tag !== 'all') {
       queryObject.tags = req.query.tag; // e.g., 'array', 'dp'
     }
@@ -238,6 +193,13 @@ const getAllProblem = async (req, res) => {
     res.status(500).json({ message: "Error: " + err.message });
   }
 };
+
+
+
+
+
+
+
 const solvedAllProblembyUser =  async(req,res)=>{
    
     try{

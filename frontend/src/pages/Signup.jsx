@@ -17,7 +17,7 @@ function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, loading } = useSelector((state) => state.auth); // Removed error as it wasn't used
+  const { isAuthenticated, loading , error} = useSelector((state) => state.auth); // Removed error as it wasn't used
   const {
     register,
     handleSubmit,
@@ -33,7 +33,6 @@ function Signup() {
   const onSubmit = (data) => {
     dispatch(registerUser(data));
   };
- 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-base-200"> {/* Added a light bg for contrast */}
       <div className="card w-96 bg-base-100 shadow-xl">
@@ -137,3 +136,9 @@ function Signup() {
 }
 
 export default Signup;
+
+
+
+
+
+
