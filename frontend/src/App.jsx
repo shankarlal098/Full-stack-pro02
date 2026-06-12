@@ -13,7 +13,7 @@ import AdminDelete from "./components/AdminDelete";
 import AdminUpload from "./components/AdminUpload";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
-import ProfilePage from "./pages/profile";
+import ProfilePage from "./pages/Profile";
 import EditProfile from "./pages/ProfileEdit";
 
 function App() {
