@@ -41,7 +41,7 @@ function Login() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-base-200"> {/* Added bg for contrast */}
       <div className="card w-96 bg-base-100 shadow-xl">
         <div className="card-body">
-          <h2 className="card-title justify-center text-3xl mb-6">Leetcode</h2> {/* Added mb-6 */}
+          <h2 className="card-title justify-center text-3xl mb-6">Codewith</h2> {/* Added mb-6 */}
 
           
           <form onSubmit={handleSubmit(onSubmit)}>
