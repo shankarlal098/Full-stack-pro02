@@ -1,7 +1,7 @@
 const express = require('express');
 
 const authRouter =  express.Router();
-const {register, login,logout, adminRegister,deleteProfile , forgotPassword , resetPassword ,    googleAuth } = require('../controllers/userAuthent')
+const {register, login,logout, adminRegister,deleteProfile , forgotPassword , resetPassword ,    googleAuth , updateProfileDetails , getCurrentUser } = require('../controllers/userAuthent')
 const userMiddleware = require("../middleware/userMiddleware");
 const adminMiddleware = require('../middleware/adminMiddleware');
 
@@ -27,7 +27,8 @@ authRouter.get('/check',userMiddleware,(req,res)=>{
 authRouter.post('/forgot-password' , forgotPassword);
 authRouter.post("/reset-password", resetPassword);
 authRouter.post("/auth-google",   googleAuth);
-
+authRouter.put('/profile/update-details', userMiddleware, updateProfileDetails);
+authRouter.get('/current', userMiddleware, getCurrentUser);
 
 
 

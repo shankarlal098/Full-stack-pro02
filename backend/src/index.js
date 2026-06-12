@@ -11,6 +11,7 @@ const aiRouter = require("./routes/aiChatting")
 const videoRouter = require("./routes/videoCreator");
 const codeRouter = require("./routes/codeRouter")
 const cors = require('cors')
+const imageRouter = require("./routes/imageRouter");
 
 // console.log("Hello")
 
@@ -33,6 +34,9 @@ app.use('/submission',submitRouter);
 app.use('/ai',aiRouter);
 app.use("/video",videoRouter);
 app.use("/code",codeRouter);
+app.use("/image",imageRouter);
+
+
 
 
 

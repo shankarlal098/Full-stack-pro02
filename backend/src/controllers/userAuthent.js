@@ -372,4 +372,65 @@ const googleAuth = async (req, res) => {
    }
 };
 
-module.exports = {register, login,logout,adminRegister,deleteProfile , resetPassword , forgotPassword, googleAuth};
+
+const updateProfileDetails = async (req, res) => {
+  try {
+    const userId = req.result._id; // Middleware se aayi hui logged-in user ki ID
+    // GitHub aur LinkedIn ko bhi req.body se nikal liya
+    const { bio, phone, location, gender, githubProfile, linkedinProfile } = req.body;
+
+    // User ko dhoondho aur uski details update karo
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          bio: bio || "",
+          phone: phone || "",
+          location: location || "",
+          gender: gender || "",
+          githubProfile: githubProfile || "",   // GitHub save hone ke liye taiyar
+          linkedinProfile: linkedinProfile || "" // LinkedIn save hone ke liye taiyar
+        }
+      },
+      { new: true, runValidators: true } // new: true se updated data hi return hoga
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found!" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile ubdated!",
+      user: updatedUser
+    });
+
+  } catch (error) {
+    console.error("Error updating profile details:", error);
+    res.status(500).json({ success: false, message: "Server problem!" });
+  }
+};
+
+const getCurrentUser = async (req, res) => {
+  try {
+    const userId = req.result._id; // Middleware se aayi hui logged-in user ki ID
+
+    // User ko dhoondho aur password ko chhor kar baaki saari details nikal lo
+    const user = await User.findById(userId).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "Bhai user nahi mila!" });
+    }
+
+    // Frontend ko data bhej do
+    res.status(200).json({
+      success: true,
+      user: user
+    });
+
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+    res.status(500).json({ success: false, message: "Server pe dikkat aayi user fetch karne me!" });
+  }
+};
+module.exports = {register, login,logout,adminRegister,deleteProfile , resetPassword , forgotPassword, googleAuth , updateProfileDetails , getCurrentUser};

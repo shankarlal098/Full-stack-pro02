@@ -13,8 +13,7 @@ cloudinary.config({
 
 const generateUploadSignature = async (req, res) => {
   try {
-    const { problemId } = req.params;
-    
+    const { problemId } = req.params;   
     const userId = req.result._id;
     // Verify problem exists
     const problem = await Problem.findById(problemId);
@@ -46,7 +45,6 @@ const generateUploadSignature = async (req, res) => {
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
       upload_url: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/video/upload`,
     });
-
   } catch (error) {
     console.error('Error generating upload signature:', error);
     res.status(500).json({ error: 'Failed to generate upload credentials' });

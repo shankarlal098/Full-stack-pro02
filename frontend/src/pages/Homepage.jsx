@@ -103,21 +103,55 @@ function Homepage() {
   return (
     <div className="min-h-screen bg-base-200">
       {/* Navigation Bar */}
-      <nav className="navbar bg-base-100 shadow-lg px-4">
-        <div className="flex-1">
-          <NavLink to="/" className="btn btn-ghost text-xl">Codewith</NavLink>
-        </div>
-        <div className="flex-none gap-4">
-          <div className="dropdown dropdown-end">
-            <div tabIndex={0} className="btn btn-ghost">
-              {user?.firstName}
-            </div>
-            <ul tabIndex={0} className="mt-3 p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52 z-[1]">
-              <li><button onClick={handleLogout}>Logout</button></li>
-              {user?.role === 'admin' && <li><NavLink to="/admin">Admin</NavLink></li>}
-            </ul>
+        {/* Navigation Bar */}
+      <nav className="navbar bg-base-100 shadow-lg px-4 border-b border-base-300">
+          <div className="flex-1">
+            <NavLink to="/" className="btn btn-ghost text-xl font-bold tracking-tight">
+              Codewith
+            </NavLink>
           </div>
-        </div>
+          
+          <div className="flex-none gap-4">
+            <div className="dropdown dropdown-end">
+              {/* Trigger Button */}
+              <div tabIndex={0} role="button" className="btn btn-ghost border border-base-300 rounded-xl px-4 flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-neutral text-neutral-content flex items-center justify-center text-xs font-bold">
+                  {user?.firstName?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <span>{user?.firstName}</span>
+                {/* Chota sa dropdown arrow down arrow icon */}
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+              </div>
+
+              {/* Dropdown Content */}
+              <ul tabIndex={0} className="mt-3 p-2 shadow-2xl menu menu-sm dropdown-content bg-base-200 border border-base-300 rounded-xl w-52 z-[50] gap-1">
+                
+                {/* 1. Naya Profile Page Link */}
+                <li>
+                  <NavLink to="/profile" className="py-2 flex items-center gap-2 font-medium">
+                    <span>👤</span> My Profile
+                  </NavLink>
+                </li>
+
+                {/* 2. Admin Link (Agar Admin ho toh upper hi dikhega) */}
+                {user?.role === 'admin' && (
+                  <li>
+                    <NavLink to="/admin" className="py-2 flex items-center gap-2 text-error font-semibold bg-error/10 hover:bg-error/20 rounded-lg">
+                      Admin Panel
+                    </NavLink>
+                  </li>
+                )}
+                {/* Ek soft dividing line */}
+                <div className="h-[1px] bg-base-300 my-1"></div>
+                {/* 3. Logout Link (Sabse niche safe side) */}
+                <li>
+                  <button onClick={handleLogout} className="py-2 text-error hover:bg-error/10 font-medium">
+                    Logout
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
       </nav>
 
       {/* Main Content */}

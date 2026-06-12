@@ -27,7 +27,8 @@ function AdminUpload(){
       // Upload video to Cloudinary
       const onSubmit = async (data) => {
         const file = data.videoFile[0];
-        
+        // The variable file is a JavaScript reference to a browser File object. The File object internally maintains a browser-managed handle/reference to the actual selected file, which allows the browser to read its binary data during upload.
+
         setUploading(true);
         setUploadProgress(0);
         clearErrors();
@@ -112,7 +113,8 @@ function AdminUpload(){
                   <input
                     type="file"
                     accept="video/*"
-                    {...register('videoFile', {
+                    {...register('videoFile',
+                       {
                       required: 'Please select a video file',
                       validate: {
                         isVideo: (files) => {

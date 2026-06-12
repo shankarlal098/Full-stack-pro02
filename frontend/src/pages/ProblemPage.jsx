@@ -29,7 +29,9 @@ const ProblemPage = () => {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false); // Redis sync indicator state
-  const [submitError, setsubmiterror] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
+  const [runError, setRunError] = useState(false);
+
 
   // Navigation & Results States
   const [runResult, setRunResult] = useState(null);
@@ -137,6 +139,8 @@ const ProblemPage = () => {
   const handleRun = async () => {
     setLoading(true);
     setRunResult(null);
+    setRunError(false);
+
     try {
       const response = await axiosClient.post(`/submission/run/${problemId}`, {
         code,
@@ -147,6 +151,7 @@ const ProblemPage = () => {
       setActiveRightTab('testcase');
     } catch (error) {
       console.error('Error running code:', error);
+      setRunError(true);
       setRunResult({ success: false, error: 'Internal server error', testCases: [] });
       setLoading(false);
       setActiveRightTab('testcase');
@@ -167,7 +172,7 @@ const ProblemPage = () => {
     } catch (error) {
       console.error('Error submitting code:', error);
       setSubmitResult(null);
-      setsubmiterror(true)
+      setSubmitError(true);
       setLoading(false);
       setActiveRightTab('result');
     }
@@ -448,11 +453,17 @@ const ProblemPage = () => {
                     )}
                   </div>
                 </div>
-              ) : (
+              ) : (!runError &&
                 <div className="text-sm text-base-content/60 italic p-2">
                   Click "Run" to test your code with the example test cases.
                 </div>
               )}
+              {runError && (
+                <div className="text-sm text-base-content/60 italic p-2">
+                  Compiler servers are busy (API Limit Reached). Please try again later!
+                </div> 
+              )}
+
             </div>
           )}
 

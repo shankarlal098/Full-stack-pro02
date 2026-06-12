@@ -68,7 +68,6 @@ const createProblem = async (req,res)=>{
         res.status(400).send("Error: "+err);
     }
 }
-
 const updateProblem = async (req,res)=>{
     
   const {id} = req.params;
@@ -136,7 +135,6 @@ const updateProblem = async (req,res)=>{
       res.status(500).send("Error: "+err);
   }
 }
-
 const deleteProblem = async(req,res)=>{
 
   const {id} = req.params;
@@ -158,8 +156,6 @@ const deleteProblem = async(req,res)=>{
     res.status(500).send("Error: "+err);
   }
 }
-
-
 const getProblemById = async(req,res)=>{
 
   const {id} = req.params;
@@ -196,7 +192,6 @@ const getProblemById = async(req,res)=>{
     res.status(500).send("Error: "+err);
   }
 }
-
 const getAllProblem = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -243,8 +238,6 @@ const getAllProblem = async (req, res) => {
     res.status(500).json({ message: "Error: " + err.message });
   }
 };
-
-
 const solvedAllProblembyUser =  async(req,res)=>{
    
     try{
@@ -256,7 +249,7 @@ const solvedAllProblembyUser =  async(req,res)=>{
         select:"_id title difficulty tags"
       });
       
-      res.status(200).send(user.problemSolved);
+      return res.status(200).send(user.problemSolved);
 
     }
     catch(err){
@@ -281,10 +274,68 @@ const submittedProblem = async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 };
+const getUserProfile = async (req, res) => {
+  try {
+    // 1. User ki details req.result se nikaali
+    const userId = req.result._id;
+    const user = await User.findById(userId).select("-password"); // Password chhod kar sab le lo
 
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
 
+    // 2. Total Submissions count karo (Passed + Failed sab)
+    const totalSubmissions = await Submission.countDocuments({ userId });
 
-module.exports = {createProblem,updateProblem,deleteProblem,getProblemById,getAllProblem,solvedAllProblembyUser,submittedProblem};
+    // 3. Status Breakdown nikalo 
+    const acceptedCount = user.problemSolved ? user.problemSolved.length : 0; // Safe check lagaya array ke liye
+    const wrongAnswers = await Submission.countDocuments({ userId, status: "wrong" });
+    const runtimeErrors = await Submission.countDocuments({ userId, status: "error" });
+
+    // 4. Recent 5 Submissions nikal lo
+    const recentSubmissions = await Submission.find({ userId })
+      .sort({ createdAt: -1 }) // Latest sabse upar
+      .limit(5)
+      .populate("problemId", "title");
+
+    // 5. Response bhejo frontend ko
+    return res.status(200).json({
+      success: true,
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        // Frontend 'emailId' dhoond raha hai tumhari file me, toh emailId naam se hi bhej dete hain
+        emailId: user.emailId || user.email, 
+        role: user.role,
+        createdAt: user.createdAt,
+        profilePic: user.profilePic || "", // Profile picture safe check ke sath
+        
+        //  NAYE FIELDS JO FRONTEND KO CHAHIYE:
+        bio: user.bio || "",
+        phone: user.phone || "",
+        location: user.location || "",
+        gender: user.gender || "",
+        githubProfile: user.githubProfile || "",
+        linkedinProfile: user.linkedinProfile || "",
+        
+        problemsSolvedCount: acceptedCount
+      },
+      stats: {
+        totalSubmissions,
+        wrongAnswers,
+        runtimeErrors,
+        accuracy: totalSubmissions > 0 ? Math.round((acceptedCount / totalSubmissions) * 100) : 0
+      },
+      recentSubmissions
+    });
+
+  } catch (err) {
+    console.error("Profile Fetch Error:", err);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+module.exports = {createProblem,updateProblem,deleteProblem,getProblemById,getAllProblem,solvedAllProblembyUser,submittedProblem , getUserProfile};
 
 
 
