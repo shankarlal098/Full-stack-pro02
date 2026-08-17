@@ -22,10 +22,7 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-<<<<<<< HEAD
-=======
-// https://full-stack-pro02.vercel.app
->>>>>>> d664cd2b47e8565e230c262a95866d10116d8cbd
+
 
 
 app.use(express.json());
