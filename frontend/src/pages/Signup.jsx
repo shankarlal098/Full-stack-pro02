@@ -8,35 +8,67 @@ import { registerUser } from '../authSlice';
 
 // Zod Schema Validation
 const signupSchema = z.object({
-  firstName: z.string().trim().min(3, 'First name must be at least 3 characters'),
-  emailId: z.string().trim().email('Please enter a valid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters long'),
+  firstName: z
+    .string()
+    .trim()
+    .min(3, 'First name must be at least 3 characters'),
+
+  emailId: z
+    .string()
+    .trim()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters long'),
 });
 
 function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   // Redux Auth State
-  const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
+  const { isAuthenticated, loading, error } = useSelector(
+    (state) => state.auth
+  );
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(signupSchema) });
+  } = useForm({
+    resolver: zodResolver(signupSchema),
+  });
 
-  // Server/network error ko ek consistent string me convert karta hai
+  // Convert different backend error formats into one message
   const getErrorMessage = (err) => {
     if (!err) return null;
-    if (typeof err === 'string') return err;
-    return err?.message || err?.data?.message || 'Registration failed. Please try again.';
+
+    // If error is already a string
+    if (typeof err === 'string') {
+      return err;
+    }
+
+    // Handle different possible backend/thunk error formats
+    return (
+      err?.data?.message ||
+      err?.data?.error ||
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.message ||
+      err?.error ||
+      null
+    );
   };
 
-  // Redux slice ka error + local submit error, dono handle honge
-  const errorMessage = getErrorMessage(submitError) || getErrorMessage(error);
+  // Local submit error gets priority over Redux error
+  const errorMessage =
+    getErrorMessage(submitError) ||
+    getErrorMessage(error);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -45,11 +77,15 @@ function Signup() {
   }, [isAuthenticated, navigate]);
 
   const onSubmit = async (data) => {
+    // Previous error clear
     setSubmitError(null);
+
     try {
-      // agar registerUser createAsyncThunk hai to .unwrap() se rejected case bhi yaha catch hoga
       await dispatch(registerUser(data)).unwrap();
     } catch (err) {
+      console.log('Signup error:', err);
+
+      // Store actual backend error
       setSubmitError(err);
     }
   };
@@ -58,9 +94,13 @@ function Signup() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-base-200">
       <div className="card w-80 bg-base-100 shadow-xl">
         <div className="card-body p-5">
-          <h2 className="card-title justify-center text-2xl mb-2">Codewith</h2>
 
-          {/* Backend/Network Error Alert Display */}
+          {/* Title */}
+          <h2 className="card-title justify-center text-2xl mb-2">
+            Codewith
+          </h2>
+
+          {/* Backend Error */}
           {errorMessage && (
             <div className="alert alert-error text-xs py-2 px-3 mb-2 rounded-lg">
               <span>{errorMessage}</span>
@@ -68,11 +108,15 @@ function Signup() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            {/* First Name Field */}
+
+            {/* First Name */}
             <div className="form-control">
               <label className="label py-1">
-                <span className="label-text text-sm">First Name</span>
+                <span className="label-text text-sm">
+                  First Name
+                </span>
               </label>
+
               <input
                 type="text"
                 placeholder="John"
@@ -81,16 +125,22 @@ function Signup() {
                 }`}
                 {...register('firstName')}
               />
+
               {errors.firstName && (
-                <span className="text-error text-xs mt-1">{errors.firstName.message}</span>
+                <span className="text-error text-xs mt-1">
+                  {errors.firstName.message}
+                </span>
               )}
             </div>
 
-            {/* Email Field */}
+            {/* Email */}
             <div className="form-control mt-2">
               <label className="label py-1">
-                <span className="label-text text-sm">Email</span>
+                <span className="label-text text-sm">
+                  Email
+                </span>
               </label>
+
               <input
                 type="email"
                 placeholder="john@example.com"
@@ -99,16 +149,22 @@ function Signup() {
                 }`}
                 {...register('emailId')}
               />
+
               {errors.emailId && (
-                <span className="text-error text-xs mt-1">{errors.emailId.message}</span>
+                <span className="text-error text-xs mt-1">
+                  {errors.emailId.message}
+                </span>
               )}
             </div>
 
-            {/* Password Field with Toggle */}
+            {/* Password */}
             <div className="form-control mt-2">
               <label className="label py-1">
-                <span className="label-text text-sm">Password</span>
+                <span className="label-text text-sm">
+                  Password
+                </span>
               </label>
+
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -118,13 +174,20 @@ function Signup() {
                   }`}
                   {...register('password')}
                 />
+
+                {/* Password Toggle */}
                 <button
                   type="button"
                   className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={
+                    showPassword
+                      ? 'Hide password'
+                      : 'Show password'
+                  }
                 >
                   {showPassword ? (
+                    // Eye Off
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4"
@@ -140,6 +203,7 @@ function Signup() {
                       />
                     </svg>
                   ) : (
+                    // Eye
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-4 w-4"
@@ -153,6 +217,7 @@ function Signup() {
                         strokeWidth={2}
                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                       />
+
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -163,14 +228,21 @@ function Signup() {
                   )}
                 </button>
               </div>
+
               {errors.password && (
-                <span className="text-error text-xs mt-1">{errors.password.message}</span>
+                <span className="text-error text-xs mt-1">
+                  {errors.password.message}
+                </span>
               )}
             </div>
 
             {/* Submit Button */}
             <div className="form-control mt-4">
-              <button type="submit" className="btn btn-primary btn-sm w-full" disabled={loading}>
+              <button
+                type="submit"
+                className="btn btn-primary btn-sm w-auto px-5 mx-auto"
+                disabled={loading}
+              >
                 {loading ? (
                   <>
                     <span className="loading loading-spinner loading-xs"></span>
@@ -187,11 +259,16 @@ function Signup() {
           <div className="text-center mt-3">
             <span className="text-xs">
               Already have an account?{' '}
-              <NavLink to="/login" className="link link-primary">
+
+              <NavLink
+                to="/login"
+                className="link link-primary"
+              >
                 Login
               </NavLink>
             </span>
           </div>
+
         </div>
       </div>
     </div>

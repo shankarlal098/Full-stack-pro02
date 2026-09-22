@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, NavLink } from 'react-router';
 import { loginUser } from '../authSlice';
 
-// Zod Login Schema
 const loginSchema = z.object({
   emailId: z
     .string()
@@ -19,26 +18,43 @@ const loginSchema = z.object({
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
+  const { isAuthenticated, loading, error } = useSelector(
+    (state) => state.auth
+  );
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(loginSchema) });
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
 
-  // Server/network error ko ek consistent string me convert karta hai
+  // Backend error ko safely string me convert karta hai
   const getErrorMessage = (err) => {
     if (!err) return null;
+
     if (typeof err === 'string') return err;
-    return err?.message || err?.data?.message || 'Invalid Credentials';
+
+    // Different backend / thunk error formats
+    return (
+      err?.data?.message ||
+      err?.data?.error ||
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.message ||
+      err?.error ||
+      null
+    );
   };
 
-  // Redux slice ka error + local submit error, dono handle honge
-  const errorMessage = getErrorMessage(submitError) || getErrorMessage(error);
+  const errorMessage =
+    getErrorMessage(submitError) ||
+    getErrorMessage(error);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -48,10 +64,11 @@ function Login() {
 
   const onSubmit = async (data) => {
     setSubmitError(null);
+
     try {
-      // agar loginUser createAsyncThunk hai to .unwrap() se rejected case bhi yaha catch hoga
       await dispatch(loginUser(data)).unwrap();
     } catch (err) {
+      console.log('Login error:', err);
       setSubmitError(err);
     }
   };
@@ -60,9 +77,10 @@ function Login() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-base-200">
       <div className="card w-80 bg-base-100 shadow-xl">
         <div className="card-body p-5">
-          <h2 className="card-title justify-center text-2xl mb-2">Codewith</h2>
+          <h2 className="card-title justify-center text-2xl mb-2">
+            Codewith
+          </h2>
 
-          {/* Backend/Network Error Alert Display */}
           {errorMessage && (
             <div className="alert alert-error text-xs py-2 px-3 mb-2 rounded-lg">
               <span>{errorMessage}</span>
@@ -70,11 +88,12 @@ function Login() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            {/* Email Field */}
+            {/* Email */}
             <div className="form-control">
               <label className="label py-1">
                 <span className="label-text text-sm">Email</span>
               </label>
+
               <input
                 type="email"
                 placeholder="john@example.com"
@@ -83,16 +102,20 @@ function Login() {
                 }`}
                 {...register('emailId')}
               />
+
               {errors.emailId && (
-                <span className="text-error text-xs mt-1">{errors.emailId.message}</span>
+                <span className="text-error text-xs mt-1">
+                  {errors.emailId.message}
+                </span>
               )}
             </div>
 
-            {/* Password Field */}
+            {/* Password */}
             <div className="form-control mt-2">
               <label className="label py-1">
                 <span className="label-text text-sm">Password</span>
               </label>
+
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -102,11 +125,14 @@ function Login() {
                   }`}
                   {...register('password')}
                 />
+
                 <button
                   type="button"
                   className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={
+                    showPassword ? 'Hide password' : 'Show password'
+                  }
                 >
                   {showPassword ? (
                     <svg
@@ -147,12 +173,18 @@ function Login() {
                   )}
                 </button>
               </div>
+
               {errors.password && (
-                <span className="text-error text-xs mt-1">{errors.password.message}</span>
+                <span className="text-error text-xs mt-1">
+                  {errors.password.message}
+                </span>
               )}
 
               <div className="text-right mt-1">
-                <NavLink to="/forgot-password" className="link link-primary text-xs">
+                <NavLink
+                  to="/forgot-password"
+                  className="link link-primary text-xs"
+                >
                   Forgot Password?
                 </NavLink>
               </div>
@@ -160,7 +192,11 @@ function Login() {
 
             {/* Submit Button */}
             <div className="form-control mt-4">
-              <button type="submit" className="btn btn-primary btn-sm w-full" disabled={loading}>
+              <button
+                type="submit"
+                className="btn btn-primary btn-sm w-auto px-5 mx-auto"
+                disabled={loading}
+              >
                 {loading ? (
                   <>
                     <span className="loading loading-spinner loading-xs"></span>
@@ -173,7 +209,6 @@ function Login() {
             </div>
           </form>
 
-          {/* Signup Redirect */}
           <div className="text-center mt-3">
             <span className="text-xs">
               Don't have an account?{' '}
