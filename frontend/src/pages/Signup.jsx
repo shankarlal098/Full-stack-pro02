@@ -59,8 +59,7 @@ function Signup() {
       err?.data?.error ||
       err?.response?.data?.message ||
       err?.response?.data?.error ||
-      err?.message ||
-      err?.error ||
+  
       null
     );
   };
