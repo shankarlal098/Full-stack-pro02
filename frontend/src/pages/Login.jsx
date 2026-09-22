@@ -42,10 +42,7 @@ function Login() {
 
     // Different backend / thunk error formats
     return (
-      err?.data?.message ||
-      err?.data?.error ||
       err?.response?.data?.message ||
-      err?.response?.data?.error ||
       null
     );
   };
@@ -80,11 +77,10 @@ function Login() {
           </h2>
 
           {errorMessage && (
-            <div className="alert alert-error text-xs py-2 px-3 mb-2 rounded-lg">
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
+                <div className="text-red-500 text-xs mb-2">
+                  <span>{errorMessage}</span>
+                </div>
+            )}
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* Email */}
             <div className="form-control">

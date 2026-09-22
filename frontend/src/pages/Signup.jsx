@@ -55,11 +55,7 @@ function Signup() {
 
     // Handle different possible backend/thunk error formats
     return (
-      err?.data?.message ||
-      err?.data?.error ||
       err?.response?.data?.message ||
-      err?.response?.data?.error ||
-  
       null
     );
   };
@@ -100,12 +96,11 @@ function Signup() {
           </h2>
 
           {/* Backend Error */}
-          {errorMessage && (
-            <div className="alert alert-error text-xs py-2 px-3 mb-2 rounded-lg">
+                  {errorMessage && (
+            <div className="text-red-500 text-xs mb-2">
               <span>{errorMessage}</span>
             </div>
           )}
-
           <form onSubmit={handleSubmit(onSubmit)}>
 
             {/* First Name */}
