@@ -1,52 +1,74 @@
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, NavLink } from 'react-router'; 
+import { useNavigate, NavLink } from 'react-router-dom'; 
 import { loginUser } from "../authSlice";
-import { useEffect, useState } from 'react';
-import axiosClient from "../utils/axiosClient";
 
-
-
+// Zod Login Schema
 const loginSchema = z.object({
-  emailId: z.string().email("Invalid Email"),
-  password: z.string().min(8, "Password is too weak") 
+  emailId: z
+    .string()
+    .trim()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
 });
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(loginSchema) }); // Using renamed schema
+  } = useForm({ 
+    resolver: zodResolver(loginSchema) 
+  });
+
+  // Server error string format extract karne ke liye Helper Function
+  const getErrorMessage = (err) => {
+    if (!err) return null;
+    if (typeof err === "string") return err;
+    return err?.message || err?.data?.message || "Invalid Credentials";
+  };
+
+  const errorMessage = getErrorMessage(error);
 
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/');
     }
-
   }, [isAuthenticated, navigate]);
   
   const onSubmit = (data) => {
     dispatch(loginUser(data));
   };
 
-
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-base-200"> {/* Added bg for contrast */}
+    <div className="min-h-screen flex items-center justify-center p-4 bg-base-200">
       <div className="card w-96 bg-base-100 shadow-xl">
         <div className="card-body">
-          <h2 className="card-title justify-center text-3xl mb-6">Codewith</h2> {/* Added mb-6 */}
+          <h2 className="card-title justify-center text-3xl mb-4">Codewith</h2>
 
-          
+          {/* Backend Error Alert Display */}
+          {errorMessage && (
+            <div className="alert alert-error text-sm py-2 px-3 mb-4 rounded-lg">
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="form-control"> {/* Removed mt-4 from first form-control for tighter spacing to title or global error */}
-              <label className="label"> {/* Removed mb-1, default spacing should be fine */}
+            {/* Email Field */}
+            <div className="form-control">
+              <label className="label">
                 <span className="label-text">Email</span>
               </label>
               <input
@@ -56,11 +78,12 @@ function Login() {
                 {...register('emailId')}
               />
               {errors.emailId && (
-                <span className="text-error text-sm mt-1">{errors.emailId.message}</span>
+                <span className="text-error text-xs mt-1">{errors.emailId.message}</span>
               )}
             </div>
 
-            <div className="form-control mt-4">
+            {/* Password Field */}
+            <div className="form-control mt-3">
               <label className="label">
                 <span className="label-text">Password</span>
               </label>
@@ -90,41 +113,42 @@ function Login() {
                 </button>
               </div>
               {errors.password && (
-                <span className="text-error text-sm mt-1">{errors.password.message}</span>
+                <span className="text-error text-xs mt-1">{errors.password.message}</span>
               )}
 
               <div className="text-right mt-2">
-                  <NavLink
-                    to="/forgot-password"
-                    className="link link-primary text-sm"
-                  >
-                    Forgot Password?
-                  </NavLink>
+                <NavLink
+                  to="/forgot-password"
+                  className="link link-primary text-xs"
+                >
+                  Forgot Password?
+                </NavLink>
               </div>
-
-              
-
-
             </div>
 
-            <div className="form-control mt-8 flex justify-center">
+            {/* Submit Button */}
+            <div className="form-control mt-6">
               <button
                 type="submit"
-                className={`btn btn-primary ${loading ? 'loading btn-disabled' : ''}`} // Added btn-disabled for better UX with loading
+                className="btn btn-primary w-full"
                 disabled={loading}
               >
                 {loading ? (
                   <>
-                    <span className="loading loading-spinner"></span>
+                    <span className="loading loading-spinner loading-xs"></span>
                     Logging in...
                   </>
-                ) : 'Login'}
+                ) : (
+                  'Login'
+                )}
               </button>
             </div>
           </form>
-          <div className="text-center mt-6">
+
+          {/* Signup Redirect */}
+          <div className="text-center mt-4">
             <span className="text-sm">
-              Don't have an account?{' '} {/* Adjusted text slightly */}
+              Don't have an account?{' '}
               <NavLink to="/signup" className="link link-primary">
                 Sign Up
               </NavLink>

@@ -5,24 +5,46 @@ import { z } from 'zod';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, NavLink } from 'react-router';
 import { registerUser } from '../authSlice';
-import axiosClient from "../utils/axiosClient";
 
+// Zod Schema Validation
 const signupSchema = z.object({
-  firstName: z.string().min(3, "Minimum character should be 3"),
-  emailId: z.string().email("Invalid Email"),
-  password: z.string().min(8, "Password is too weak")
+  firstName: z
+    .string()
+    .trim()
+    .min(3, "First name must be at least 3 characters"),
+  emailId: z
+    .string()
+    .trim()
+    .email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters long")
 });
 
 function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, loading , error} = useSelector((state) => state.auth); // Removed error as it wasn't used
+
+  // Redux Auth State
+  const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(signupSchema) });
+  } = useForm({ 
+    resolver: zodResolver(signupSchema) 
+  });
+
+  // Server error string format extract karne ke liye Helper Function
+  const getErrorMessage = (err) => {
+    if (!err) return null;
+    if (typeof err === "string") return err;
+    return err?.message || err?.data?.message || "Registration failed. Please try again.";
+  };
+
+  const errorMessage = getErrorMessage(error);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -33,11 +55,20 @@ function Signup() {
   const onSubmit = (data) => {
     dispatch(registerUser(data));
   };
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-base-200"> {/* Added a light bg for contrast */}
+    <div className="min-h-screen flex items-center justify-center p-4 bg-base-200">
       <div className="card w-96 bg-base-100 shadow-xl">
         <div className="card-body">
-          <h2 className="card-title justify-center text-3xl mb-6">Codewith</h2> {/* Added mb-6 for spacing */}
+          <h2 className="card-title justify-center text-3xl mb-4">Codewith</h2>
+
+          {/* Backend Error Alert Display */}
+          {errorMessage && (
+            <div className="alert alert-error text-sm py-2 px-3 mb-4 rounded-lg">
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* First Name Field */}
             <div className="form-control">
@@ -51,28 +82,28 @@ function Signup() {
                 {...register('firstName')}
               />
               {errors.firstName && (
-                <span className="text-error text-sm mt-1">{errors.firstName.message}</span>
+                <span className="text-error text-xs mt-1">{errors.firstName.message}</span>
               )}
             </div>
 
             {/* Email Field */}
-            <div className="form-control mt-4">
+            <div className="form-control mt-3">
               <label className="label">
                 <span className="label-text">Email</span>
               </label>
               <input
                 type="email"
                 placeholder="john@example.com"
-                className={`input input-bordered w-full ${errors.emailId ? 'input-error' : ''}`} // Ensure w-full for consistency
+                className={`input input-bordered w-full ${errors.emailId ? 'input-error' : ''}`}
                 {...register('emailId')}
               />
               {errors.emailId && (
-                <span className="text-error text-sm mt-1">{errors.emailId.message}</span>
+                <span className="text-error text-xs mt-1">{errors.emailId.message}</span>
               )}
             </div>
 
             {/* Password Field with Toggle */}
-            <div className="form-control mt-4">
+            <div className="form-control mt-3">
               <label className="label">
                 <span className="label-text">Password</span>
               </label>
@@ -80,15 +111,14 @@ function Signup() {
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  // Added pr-10 (padding-right) to make space for the button
                   className={`input input-bordered w-full pr-10 ${errors.password ? 'input-error' : ''}`}
                   {...register('password')}
                 />
                 <button
                   type="button"
-                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 hover:text-gray-700" // Added transform for better centering, styling
+                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"} // Accessibility
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -103,25 +133,31 @@ function Signup() {
                 </button>
               </div>
               {errors.password && (
-                <span className="text-error text-sm mt-1">{errors.password.message}</span>
+                <span className="text-error text-xs mt-1">{errors.password.message}</span>
               )}
             </div>
 
             {/* Submit Button */}
-            <div className="form-control mt-8 flex justify-center"> 
+            <div className="form-control mt-6"> 
               <button
                 type="submit"
-                className={`btn btn-primary ${loading ? 'loading' : ''}`}
+                className="btn btn-primary w-full"
                 disabled={loading}
               >
-                {loading ? 'Signing Up...' : 'Sign Up'}
+                {loading ? (
+                  <>
+                    <span className="loading loading-spinner loading-xs"></span>
+                    Signing Up...
+                  </>
+                ) : (
+                  'Sign Up'
+                )}
               </button>
             </div>
-          
           </form>
 
           {/* Login Redirect */}
-          <div className="text-center mt-6"> {/* Increased mt for spacing */}
+          <div className="text-center mt-4">
             <span className="text-sm">
               Already have an account?{' '}
               <NavLink to="/login" className="link link-primary">
@@ -136,9 +172,3 @@ function Signup() {
 }
 
 export default Signup;
-
-
-
-
-
-

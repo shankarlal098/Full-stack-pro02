@@ -8,64 +8,78 @@ const crypto = require("crypto");
 const transporter = require('../utils/nodemailer')
 const client = require("../utils/googleClient");
 
-
 const register = async (req, res) => {
     try {
         validate(req.body); 
         const { firstName, emailId, password } = req.body;
 
+        const existingUser = await User.findOne({ emailId: emailId.toLowerCase() });
+        if (existingUser) {
+            return res.status(400).json({ message: "Email is already registered" });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
         
         const user = await User.create({
             firstName,
-            emailId,
+            emailId: emailId.toLowerCase(),
             password: hashedPassword,
             role: 'user'
         });
 
         const token = jwt.sign(
-            { _id: user._id, emailId: emailId, role: 'user' }, 
+            { _id: user._id, emailId: user.emailId, role: user.role }, 
             process.env.JWT_KEY, 
             { expiresIn: '1h' }
         );
 
-        // Cookies with cross-site support
         res.cookie('token', token, {
             maxAge: 60 * 60 * 1000,
             httpOnly: true,
-            secure: true,        // Production mein HTTPS ke liye
-            sameSite: 'none'     // Cross-origin (Vercel to Render) ke liye zaroori
+            secure: true,      
+            sameSite: 'none'
         });
 
-        res.status(201).json({
-            user: { firstName: user.firstName, emailId: user.emailId, _id: user._id, role: user.role },
+        return res.status(201).json({
+            user: { 
+                firstName: user.firstName, 
+                emailId: user.emailId, 
+                _id: user._id, 
+                role: user.role 
+            },
             message: "Registered Successfully"
         });
+
     } catch (err) {
-        res.status(400).send("Error: " + err.message);
+        return res.status(400).json({ message: err.message || "Registration failed" });
     }
 };
 
 const login = async (req, res) => {
     try {
         const { emailId, password } = req.body;
-        console.log("done");
 
-        if (!emailId || !password) throw new Error("Invalid Credentials");
+        if (!emailId || !password) {
+            return res.status(400).json({ message: "Invalid Credentials" });
+        }
 
-        const user = await User.findOne({ emailId });
-        if (!user) throw new Error("Invalid Credentials");
+      
+        const user = await User.findOne({ emailId: emailId.toLowerCase() });
+        if (!user) {
+            return res.status(401).json({ message: "Invalid Credentials" });
+        }
 
         const match = await bcrypt.compare(password, user.password);
-        if (!match) throw new Error("Invalid Credentials");
+        if (!match) {
+            return res.status(401).json({ message: "Invalid Credentials" });
+        }
 
         const token = jwt.sign(
-            { _id: user._id, emailId: emailId, role: user.role }, 
+            { _id: user._id, emailId: user.emailId, role: user.role }, 
             process.env.JWT_KEY, 
             { expiresIn: '1h' }
         );
 
-        // Cookies with cross-site support
         res.cookie('token', token, {
             maxAge: 60 * 60 * 1000,
             httpOnly: true,
@@ -73,14 +87,21 @@ const login = async (req, res) => {
             sameSite: 'none'
         });
 
-        res.status(200).json({
-            user: { firstName: user.firstName, emailId: user.emailId, _id: user._id, role: user.role },
+        return res.status(200).json({
+            user: { 
+                firstName: user.firstName, 
+                emailId: user.emailId, 
+                _id: user._id, 
+                role: user.role 
+            },
             message: "Logged In Successfully"
         });
+
     } catch (err) {
-        res.status(401).send("Error: " + err.message);
+        return res.status(500).json({ message: "Internal Server Error: " + err.message });
     }
 };
+
 
 const logout = async(req,res)=>{
 
